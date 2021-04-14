@@ -6,13 +6,13 @@
 #define PF PRIX32
 #define BYTE uint8_t
 
-// SHA256 works on blocks of 512 bits.
+// SHA512 works on blocks of 1024 bits.
 union Block {
-    // 8 x 64 = 512 - dealing with block as bytes.
+    // 8 x 128 = 1024 - dealing with block as bytes.
     BYTE bytes[64];
-    // 32 x 16 = 512 - dealing with block as words.
+    // 64 x 16 = 1024 - dealing with block as words.
     WORD words[16];
-    // 64 x 8 = 512 - dealing with the last 64 bits of last block.
+    // 128 x 8 = 1024 - dealing with the last 64 bits of last block.
     uint64_t sixf[8];
 };
 
@@ -47,7 +47,7 @@ int next_block(FILE *f, union Block *B, enum Status *S, uint64_t *nobits) {
             for (nobytes++; nobytes < 56; nobytes++) {
                 B->bytes[nobytes] = 0x00; // In bits: 00000000
             }
-            // Append length of original input (CHECK ENDIANESS).
+            // Append length of original input.
             B->sixf[7] = *nobits;
             // Say this is the last block.
             *S = END;
@@ -69,7 +69,7 @@ int next_block(FILE *f, union Block *B, enum Status *S, uint64_t *nobits) {
         for (nobytes = 0; nobytes < 56; nobytes++) {
             B->bytes[nobytes] = 0x00; // In bits: 00000000
         }
-        // Append nobits as an integer. CHECK ENDIAN!
+        // Append nobits as an integer.
         B->sixf[7] = *nobits;
         // Change the status to END.
         *S = END;

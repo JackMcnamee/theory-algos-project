@@ -85,7 +85,7 @@ int next_block(FILE *f, union Block *B, enum Status *S, uint64_t *nobits) {
             for (nobytes++; nobytes < 56; nobytes++) {
                 B->bytes[nobytes] = 0x00; // In bits: 00000000
             }
-            // Append length of original input (CHECK ENDIANESS).
+            // Append length of original input
             B->sixf[7] = *nobits;
             // Say this is the last block.
             *S = END;
@@ -107,7 +107,7 @@ int next_block(FILE *f, union Block *B, enum Status *S, uint64_t *nobits) {
         for (nobytes = 0; nobytes < 56; nobytes++) {
             B->bytes[nobytes] = 0x00; // In bits: 00000000
         }
-        // Append nobits as an integer. CHECK ENDIAN!
+        // Append nobits as an integer
         B->sixf[7] = *nobits;
         // Change the status to END.
         *S = END;
