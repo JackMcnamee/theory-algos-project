@@ -7,18 +7,18 @@
 #define BYTE uint8_t
 
 // Page 5 of the secure hash standard.
-#define ROTL(x,n) (x<<n) | (x>>(W-n))
-#define ROTR(x,n) (x>>n) | (x<<(W-n))
-#define SHR(x,n) x>>n
+#define ROTL(_x,_n) (_x<<_n) | (_x>>((sizeof(_x)*8)-_n))
+#define ROTR(_x,_n) (_x>>_n) | (_x<<((sizeof(_x)*8)-_n))
+#define SHR(_x,_n) (_x>>_n)
 
 // Page 11 of the secure hash standard.
-#define CH(x,y,z) (x&y)^(~x&z)
-#define MAJ(x,y,z) (x&y)^(x&z)^(y&z)
+#define CH(_x,_y,_z) (_x&_y)^(~_x&_z)
+#define MAJ(_x,_y,_z) (_x&_y)^(_x&_z)^(_y&_z)
 
-#define SIG0(x) ROTR(x,28)^ROTR(x,34)^ROTR(x,39)
-#define SIG1(x) ROTR(x,14)^ROTR(x,18)^ROTR(x,41)
-#define SiG0(x) ROTR(x,1)^ROTR(x,8)^SHR(x,7)
-#define SiG1(x) ROTR(x,19)^ROTR(x,61)^SHR(x,6)
+#define SIG0(_x) (ROTR(_x,28)^ROTR(_x,34)^ROTR(_x,39))
+#define SIG1(_x) (ROTR(_x,14)^ROTR(_x,18)^ROTR(_x,41))
+#define SiG0(_x) (ROTR(_x,1)^ROTR(_x,8)^SHR(_x,7))
+#define SiG1(_x) (ROTR(_x,19)^ROTR(_x,61)^SHR(_x,6))
 
 // SHA512 works on blocks of 1024 bits.
 union Block {
@@ -114,6 +114,40 @@ int next_block(FILE *f, union Block *B, enum Status *S, uint64_t *nobits) {
     }
     
     return 1;
+}
+
+// Performs hash computation
+int next_hash(union Block *M, WORD H[]) {
+  
+    // Message schedule, Section 6.4.2
+    WORD W[64];
+    // Iterator.
+    int t;
+    // Temporary variables.
+    WORD a, b, c, d, e, f, g, h, T1, T2;
+
+    // Section 6.4.2, part 1.
+    for (t = 0; t <= 15; t++)
+        W[t] = M->words[t];
+    for (t = 16; t <= 79; t++)
+        W[t] = Sig1(W[t-2]) + W[t-7] + Sig0(W[t-15]) + W[t-16];
+
+    // Section 6.4.2, part 2.
+    a = H[0]; b = H[1]; c = H[2]; d = H[3];
+    e = H[4]; f = H[5]; g = H[6]; h = H[7];
+
+    // Section 6.4.2, part 3.
+    for (t = 0; t < 64; t++) {
+        T1 = h + SIG1(e) + CH(e, f, g) + K[t] + W[t];
+        T2 = SIG0(a) + MAJ(a, b, c);
+        h = g; g = f; f = e; e = d + T1; d = c; c = b; b = a; a = T1 + T2;
+    }
+
+    // Section 6.4.2, part 4.
+    H[0] = a + H[0]; H[1] = b + H[1]; H[2] = c + H[2]; H[3] = d + H[3];
+    H[4] = e + H[4]; H[5] = f + H[5]; H[6] = g + H[6]; H[7] = h + H[7];
+
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
