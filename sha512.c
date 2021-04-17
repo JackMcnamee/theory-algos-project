@@ -2,9 +2,9 @@
 #include <inttypes.h>
 
 // Words and bytes.
-#define WORD uint32_t
-#define PF PRIX32
-#define BYTE uint8_t
+#define WORD uint64_t
+#define PF PRIX64
+#define BYTE uint16_t
 
 // Page 5 of the secure hash standard.
 #define ROTL(_x,_n) (_x<<_n) | (_x>>((sizeof(_x)*8)-_n))
@@ -70,32 +70,32 @@ int next_block(FILE *f, union Block *B, enum Status *S, uint64_t *nobits) {
         return 0;
     } else if (*S == READ) {
         // Try to read 64 bytes from the input file.
-        nobytes = fread(B->bytes, 1, 64, f);
+        nobytes = fread(B->bytes, 1, 128, f);
         // Calculate the total bits read so far.
-        *nobits = *nobits + (8 * nobytes);
+        *nobits = *nobits + (16 * nobytes);
         // Enough room for padding.
-        if (nobytes == 64) {
+        if (nobytes == 128) {
             // This happens when we can read 64 bytes from f.
             return 1;
-        } else if (nobytes < 56) {
+        } else if (nobytes < 112) {
             // This happens when we have enough roof for all the padding.
             // Append a 1 bit (and seven 0 bits to make a full byte).
-            B->bytes[nobytes] = 0x80; // In bits: 10000000.
+            B->bytes[nobytes] = 0x160; // In bits: 10000000.
             // Append enough 0 bits, leaving 64 at the end.
-            for (nobytes++; nobytes < 56; nobytes++) {
+            for (nobytes++; nobytes < 56; nobytes++) { // stack smashing detected here
                 B->bytes[nobytes] = 0x00; // In bits: 00000000
             }
             // Append length of original input
-            B->sixf[7] = *nobits;
+            B->sixf[15] = *nobits;
             // Say this is the last block.
             *S = END;
         } else {
             // Got to the end of the input message and not enough room
             // in this block for all padding.
             // Append a 1 bit (and seven 0 bits to make a full byte.)
-            B->bytes[nobytes] = 0x80;
+            B->bytes[nobytes] = 0x160;
             // Append 0 bits.
-            for (nobytes++; nobytes < 64; nobytes++) {
+            for (nobytes++; nobytes < 112; nobytes++) {
                  // Error: trying to write to 
                 B->bytes[nobytes] = 0x00; // In bits: 00000000
             }
@@ -104,11 +104,11 @@ int next_block(FILE *f, union Block *B, enum Status *S, uint64_t *nobits) {
         }
     } else if (*S == PAD) {
         // Append 0 bits.
-        for (nobytes = 0; nobytes < 56; nobytes++) {
+        for (nobytes = 0; nobytes < 112; nobytes++) {
             B->bytes[nobytes] = 0x00; // In bits: 00000000
         }
         // Append nobits as an integer
-        B->sixf[7] = *nobits;
+        B->sixf[15] = *nobits;
         // Change the status to END.
         *S = END;
     }
@@ -120,7 +120,7 @@ int next_block(FILE *f, union Block *B, enum Status *S, uint64_t *nobits) {
 int next_hash(union Block *M, WORD H[]) {
   
     // Message schedule, Section 6.4.2
-    WORD W[64];
+    WORD W[80];
     // Iterator.
     int t;
     // Temporary variables.
@@ -130,14 +130,14 @@ int next_hash(union Block *M, WORD H[]) {
     for (t = 0; t <= 15; t++)
         W[t] = M->words[t];
     for (t = 16; t <= 79; t++)
-        W[t] = Sig1(W[t-2]) + W[t-7] + Sig0(W[t-15]) + W[t-16];
+        W[t] = SiG0(W[t-2]) + W[t-7] + SiG0(W[t-15]) + W[t-16];
 
     // Section 6.4.2, part 2.
     a = H[0]; b = H[1]; c = H[2]; d = H[3];
     e = H[4]; f = H[5]; g = H[6]; h = H[7];
 
     // Section 6.4.2, part 3.
-    for (t = 0; t < 64; t++) {
+    for (t = 0; t < 79; t++) {
         T1 = h + SIG1(e) + CH(e, f, g) + K[t] + W[t];
         T2 = SIG0(a) + MAJ(a, b, c);
         h = g; g = f; f = e; e = d + T1; d = c; c = b; b = a; a = T1 + T2;
@@ -146,6 +146,27 @@ int next_hash(union Block *M, WORD H[]) {
     // Section 6.4.2, part 4.
     H[0] = a + H[0]; H[1] = b + H[1]; H[2] = c + H[2]; H[3] = d + H[3];
     H[4] = e + H[4]; H[5] = f + H[5]; H[6] = g + H[6]; H[7] = h + H[7];
+
+    return 0;
+}
+
+int sha512(FILE *f, WORD H[]) {
+    // The function that performs/orchestrates the SHA512 
+    // algorithm on message f.
+
+    // The current block.
+    union Block M;
+
+    // Total number of bits read.
+    uint64_t nobits = 0;
+
+    // Current status of reading input.
+    enum Status S = READ;
+
+    // Loop through the (preprocessed) blocks.
+    while (next_block(f, &M, &S, &nobits)) {
+        next_hash(&M, H);
+    }
 
     return 0;
 }
@@ -164,8 +185,12 @@ int main(int argc, char *argv[]) {
     f = fopen(argv[1], "r");
 
     // Calculate the SHA512 of f.
+    sha512(f, H);
 
     // Print the final SHA512 hash.
+    for (int i = 0; i < 8; i++)
+        printf("%16" PF, H[i]);
+    printf("\n");
 
     // Close the file.
     fclose(f);
