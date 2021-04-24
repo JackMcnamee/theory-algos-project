@@ -1,5 +1,4 @@
 # Theory of Algorithms Project 2021
-
 ### Description
 This programme, written in the C programming language, calculates the [SHA512](https://www.nist.gov/publications/secure-hash-standard) value of a file entered by the user via a command line argument.
 
@@ -11,7 +10,7 @@ This programme, written in the C programming language, calculates the [SHA512](h
   - parsing the file contents into blocks 
 - The [sha512.c](https://github.com/JackMcnamee/theory-algos-project/blob/main/sha512.c) file includes the methods in both of the files above, the methods needed to perform the hash computation and the SHA512 algorithm on the file entered by the user, and also runs the programme.
 
-### Instructions on how to run project
+### Instructions on how to run this project
 Enter in the following commands into your command prompt:
 1) `git clone https://github.com/JackMcnamee/theory-algos-project`
 2) `cd theory-algos-project`
@@ -35,8 +34,14 @@ The steps involved in SHA512 include:
       - Apply the compression function to update registers in a for loop, j = 0 to 79. This can be seen in section [6.4.2.3](https://www.nist.gov/publications/secure-hash-standard) of the Secure Hash Standard Publication.
       - Compute the ith intermediate hash value H(i). This can be seen in section [6.4.2.4](https://www.nist.gov/publications/secure-hash-standard) of the Secure Hash Standard Publication.
       - Once the original for loop is completed, the hash of the message is obtained.
-      
+***
+### Answers to Questions
+1) Why can't we reverse the SHA512 algorithm to retrieve the original message from a hash digest?
+      - SHA512 is part of the SHA-2 family, which also includes SHA-224, SHA-256, SHA-384, SHA-512/224, SHA-512/256. SHA-2 consists of a set of crytographic hash functions, designed by the US National Security Agency. A hash function is a mathematical function that converts an input into a compressed output string, called a hash value. The input to SHA512 can be a length of up to 2^128 bits but the output is always 512 bits. This fixed length adds to the security of SHA512 as some bits will be lost, if the input message is longer than 512 bits, and will result in the hash function being irreversible.
+
+***
 ### Resources
 - [Secure Hash Standard Publication](https://www.nist.gov/publications/secure-hash-standard)
 - [Cryptography: Explaining SHA-512](https://medium.com/@zaid960928/cryptography-explaining-sha-512-ad896365a0c1)
 - [Descriptions of SHA-256, SHA-384, and SHA-512](http://www.iwar.org.uk/comsec/resources/cipher/sha256-384-512.pdf)
+- [SHA-2](https://en.wikipedia.org/wiki/SHA-2)
