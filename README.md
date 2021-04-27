@@ -38,6 +38,8 @@ The steps involved in SHA512 include:
 ### Answers to Questions
 1) Why can't we reverse the SHA512 algorithm to retrieve the original message from a hash digest?
       - SHA512 is part of the SHA-2 family, which also includes SHA-224, SHA-256, SHA-384, SHA-512/224, SHA-512/256. SHA-2 consists of a set of crytographic hash functions, designed by the US National Security Agency. A hash function is a mathematical function that converts an input into a compressed output string, called a hash value. The input to SHA512 can be a length of up to 2^128 bits but the output is always 512 bits. This fixed length adds to the security of SHA512 as some bits will be lost, if the input message is longer than 512 bits, and will result in the hash function being irreversible.
+2) Can you design an algorithm that, given enough time, will find input messages that give each of the possible 512-bit strings?
+      - Designing such an algorithm would depend on many factors, such as the equipment and resources available, the size of the input message, and the time you have. The resources needed would probably include a quantum computer, however the likelihood of the algorithm outputting the correct input message in our lifetime would be very low. My reasoning for this is that there is no evidence of any members of the SHA-2 family having been cracked yet. Also the price of Bitcoin being as high as it is, is in part to the security of the cryptocurrency, which uses SHA-256 in the creation of Bitcoin addresses. 
 
 ***
 ### Resources
@@ -45,3 +47,4 @@ The steps involved in SHA512 include:
 - [Cryptography: Explaining SHA-512](https://medium.com/@zaid960928/cryptography-explaining-sha-512-ad896365a0c1)
 - [Descriptions of SHA-256, SHA-384, and SHA-512](http://www.iwar.org.uk/comsec/resources/cipher/sha256-384-512.pdf)
 - [SHA-2](https://en.wikipedia.org/wiki/SHA-2)
+- [SHA-256in Bitcoin](https://en.bitcoin.it/wiki/SHA-256)
