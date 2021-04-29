@@ -14,8 +14,9 @@ This programme, written in the C programming language, calculates the [SHA512](h
 Enter in the following commands into your command prompt:
 1) `git clone https://github.com/JackMcnamee/theory-algos-project`
 2) `cd theory-algos-project`
-3) `make sha512`
+3) `make`
 4) `./sha512 path/to/your/file/input.txt`
+5) To test SHA512: `make test`
 
 ### SHA512
 SHA512 is a cryptographic algorithm that performs a hashing function on data. The algorithm is very similar to SHA256, used in the Bitcoin blockchain, except it operates on a 1024-bit message block and a 512-bit intermediate hash value.
