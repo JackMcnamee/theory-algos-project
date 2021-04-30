@@ -1,6 +1,6 @@
 # Theory of Algorithms Project 2021
 ### Description
-This programme, written in the C programming language, calculates the [SHA512](https://www.nist.gov/publications/secure-hash-standard) value of a file entered by the user via a command line argument.
+This program, written in the C programming language, calculates the [SHA512](https://www.nist.gov/publications/secure-hash-standard) value of a file entered by the user via a command line argument.
 
 #### Project Structure
 - The [funcs.c](https://github.com/JackMcnamee/theory-algos-project/blob/main/funcs.c) file contains the operations, functions, and constants used in SHA512. These functions can be found in section [4.1.3](https://www.nist.gov/publications/secure-hash-standard) of the Secure Hash Standard Publication.
@@ -8,16 +8,19 @@ This programme, written in the C programming language, calculates the [SHA512](h
   - setting the initial hash value
   - padding the file contents
   - parsing the file contents into blocks 
-- The [sha512.c](https://github.com/JackMcnamee/theory-algos-project/blob/main/sha512.c) file includes the methods in both of the files above, the methods needed to perform the hash computation and the SHA512 algorithm on the file entered by the user, and also runs the programme.
+- The [sha512.c](https://github.com/JackMcnamee/theory-algos-project/blob/main/sha512.c) file includes the methods in both of the files above, the methods needed to perform the hash computation and the SHA512 algorithm on the file entered by the user, and also runs the program.
+- The [tests.sh](https://github.com/JackMcnamee/theory-algos-project/blob/main/tests.sh) file is used to run tests on this program. It uses sha512sum on input.txt, which prints a SHA512 message digest, and compares this output to what this program ouputs when performing the sha512 encryption on input.txt. It also does the same to an empty.txt file, which contains no data. When ran, it lets the user know if the tests passed or failed.
+- The [Makefile](https://github.com/JackMcnamee/theory-algos-project/blob/main/Makefile) defines the set of tasks to be excecuted. It contains instructions for making sha512, running tests, and cleaning files.
 
 ### Instructions on how to run this project
-Enter in the following commands into your command prompt:
+Enter in the following commands into your Ubuntu or Debian terminal:
 1) `git clone https://github.com/JackMcnamee/theory-algos-project`
 2) `cd theory-algos-project`
-3) `make`
-4) `./sha512 path/to/your/file/input.txt`
-5) To test SHA512: `make test`
-
+3) To compile: `gcc sha512.c -o sha512`
+4) To build the program: `make`
+5) To get the SHA512 hash digest of your file: `./sha512 path/to/your/file.txt`
+6) To test the program: `make test`
+***
 ### SHA512
 SHA512 is a cryptographic algorithm that performs a hashing function on data. The algorithm is very similar to SHA256, used in the Bitcoin blockchain, except it operates on a 1024-bit message block and a 512-bit intermediate hash value.
 
@@ -43,7 +46,7 @@ The steps involved in SHA512 include:
       - Designing such an algorithm would depend on many factors, such as the equipment and resources available, the size of the input message, and the time you have. The resources needed would probably include a quantum computer, however the likelihood of the algorithm outputting the correct input message in our lifetime would be very low. My reasoning for this is that there is no evidence of any members of the SHA-2 family having been cracked yet. Also the price of Bitcoin being as high as it is, is in part due to the security of the cryptocurrency, which uses SHA-256 in the creation of Bitcoin addresses. 
 3) How difficult is it to find a hash digest beginning with at least twelve zeros?
       - The probability of generating a hash digest starting with twelve zeroes would be: 1/32^12 = 8.67e-19
-      - Get the reciprocal of the possibilty to get the average number of hashes to solve this: 1/8.67e-19 = 1.1534025e+18
+      - Get the reciprocal of the possibility to get the average number of hashes to solve this: 1/8.67e-19 = 1.1534025e+18
       - Divide this by the hashrate of your hardware to get the average number of seconds required to obtain this hash digest: 1.1534025e+18/3,000,000 = 384467500000 seconds or over 12000 years.
           - A typical laptop does around 2-3 million hashes per second.
 
