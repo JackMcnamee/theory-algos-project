@@ -1,8 +1,14 @@
 #include <stdio.h>
 #include <inttypes.h>
+#include <byteswap.h>
 
-#define W 64
+// Endianess. Adapted from:
+//      https://developer.ibm.com/technologies/systems/articles/au-endianc/
+#define is_little_endian() ((*(char*)&_i) != 0)
+const int _i = 1;
+
 // Words and bytes.
+#define W 64
 #define WORD uint64_t
 #define PF PRIx64
 #define BYTE uint8_t
@@ -50,7 +56,7 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits) {
                 M->bytes[nobytes] = 0x00; // In bits: 00000000
             }
             // Append nobits as a big endian integer.
-            M->sixf[15] = (islilend() ? bswap_64(*nobits) : *nobits);
+            M->sixf[15] = (is_little_endian() ? bswap_64(*nobits) : *nobits);
             // Say this is the last block.
             *S = END;
         } else {
@@ -71,13 +77,13 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits) {
             M->bytes[nobytes] = 0x00; // In bits: 00000000
         }
         // Append nobits as a big endian integer.
-        M->sixf[15] = (islilend() ? bswap_64(*nobits) : *nobits);
+        M->sixf[15] = (is_little_endian() ? bswap_64(*nobits) : *nobits);
         // Change the status to END.
         *S = END;
     }
 
     // Swap the byte order of the words if we're little endian.
-    if (islilend())
+    if (is_little_endian())
         for (int i = 0; i < 16; i++)
             M->words[i] = bswap_64(M->words[i]);
 
@@ -107,7 +113,7 @@ int main(int argc, char *argv[]) {
     // Loop through (preprocessed) the blocks.
     while (next_block(f, &B, &S, &nobits)) {
         // Print the 16 32-bit words.
-        for (i = 0; i < 16; i++) {
+        for (i = 0; i < 8; i++) {
             printf("%016" PF " ", B.words[i]);
         }
         printf("\n");

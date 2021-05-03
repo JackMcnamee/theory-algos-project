@@ -3,8 +3,8 @@
 #include <byteswap.h>
 
 // Endianess. Adapted from:
-// https://developer.ibm.com/technologies/systems/articles/au-endianc/
-#define islilend() ((*(char*)&_i) != 0)
+//      https://developer.ibm.com/technologies/systems/articles/au-endianc/
+#define is_little_endian() ((*(char*)&_i) != 0)
 const int _i = 1;
 
 // Words and bytes.
@@ -12,12 +12,12 @@ const int _i = 1;
 #define PF PRIx64
 #define BYTE uint8_t
 
-// Page 5 of the secure hash standard.
+// Page 5/6 of the secure hash standard.
 #define ROTL(_x,_n) ((_x << _n) | (_x >> ((sizeof(_x)*8) - _n)))
 #define ROTR(_x,_n) ((_x >> _n) | (_x << ((sizeof(_x)*8) - _n)))
 #define SHR(_x,_n) (_x >> _n)
 
-// Page 10 of the secure hash standard.
+// Page 11 of the secure hash standard.
 #define CH(_x,_y,_z) ((_x & _y)  ^ (~_x & _z))
 #define MAJ(_x,_y,_z) ((_x & _y) ^ (_x & _z) ^ (_y & _z))
 
@@ -41,7 +41,7 @@ enum Status {
     READ, PAD, END
 };
 
-// Section 4.2.3
+// SHA512 Constants in Section 4.2.3
 const WORD K[] = {
     0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc,
     0x3956c25bf348b538, 0x59f111f1b605d019, 0x923f82a4af194f9b, 0xab1c5ed5da6d8118,
@@ -93,7 +93,7 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits) {
                 M->bytes[nobytes] = 0x00; // In bits: 00000000
             }
             // Append nobits as a big endian integer.
-            M->sixf[15] = (islilend() ? bswap_64(*nobits) : *nobits);
+            M->sixf[15] = (is_little_endian() ? bswap_64(*nobits) : *nobits);
             // Say this is the last block.
             *S = END;
         } else {
@@ -114,13 +114,13 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits) {
             M->bytes[nobytes] = 0x00; // In bits: 00000000
         }
         // Append nobits as a big endian integer.
-        M->sixf[15] = (islilend() ? bswap_64(*nobits) : *nobits);
+        M->sixf[15] = (is_little_endian() ? bswap_64(*nobits) : *nobits);
         // Change the status to END.
         *S = END;
     }
 
     // Swap the byte order of the words if we're little endian.
-    if (islilend())
+    if (is_little_endian())
         for (int i = 0; i < 16; i++)
             M->words[i] = bswap_64(M->words[i]);
 
@@ -129,7 +129,6 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits) {
 
 
 int next_hash(union Block *M, WORD H[]) {
-  
     // Message schedule, Section 6.2.2
     WORD W[128];
     // Iterator.
@@ -163,7 +162,7 @@ int next_hash(union Block *M, WORD H[]) {
 
 
 int sha512(FILE *f, WORD H[]) {
-    // The function that performs/orchestrates the SHA256 algorithm on
+    // The function that performs/orchestrates the SHA512 algorithm on
     // message f.
 
     // The current block.
@@ -184,7 +183,6 @@ int sha512(FILE *f, WORD H[]) {
 }
 
 int main(int argc, char *argv[]) {
-
     // argc should be 2 for correct execution
     if ( argc != 2 ) {
         // Print argv[0] for filename
@@ -211,10 +209,10 @@ int main(int argc, char *argv[]) {
             printf( "Error: File could not be found\n" );
         }
         else {
-            // Calculate the sha512 of f.
+            // Calculate the SHA512 of f.
             sha512(f, H);
 
-            // Print the final sha512 hash.
+            // Print the final SHA512 hash.
             for (int i = 0; i < 8; i++)
                 printf("%016" PF, H[i]);
             printf("\n");
